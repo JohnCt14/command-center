@@ -113,10 +113,34 @@ function initDatabase() {
     });
 }
 
+// Open the DB as a real Promise. NOTE: indexedDB.open() returns an IDBRequest,
+// NOT a Promise — `await indexedDB.open(...)` would give you the request object.
+// Always go through this helper.
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(STORES.PIN)) db.createObjectStore(STORES.PIN, { keyPath: 'id' });
+            if (!db.objectStoreNames.contains(STORES.AGENTS)) {
+                const s = db.createObjectStore(STORES.AGENTS, { keyPath: 'id', autoIncrement: true });
+                s.createIndex('name', 'name', { unique: false });
+            }
+            if (!db.objectStoreNames.contains(STORES.NOTES)) {
+                const s = db.createObjectStore(STORES.NOTES, { keyPath: 'id', autoIncrement: true });
+                s.createIndex('timestamp', 'timestamp', { unique: false });
+            }
+            if (!db.objectStoreNames.contains(STORES.BRIEFING)) db.createObjectStore(STORES.BRIEFING, { keyPath: 'id' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 // Check if it's first launch (no PIN set)
 async function checkFirstLaunch() {
     const stay = await getStayUnlocked();
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
     const request = store.get(1); // We'll use id=1 for the PIN record
@@ -177,7 +201,7 @@ function hideLockScreen() {
 
 // "Stay unlocked on this phone" flag is stored in the PIN store under id=2.
 async function getStayUnlocked() {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
     const request = store.get(2);
@@ -187,7 +211,7 @@ async function getStayUnlocked() {
 }
 
 async function setStayUnlocked(val) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readwrite');
     const store = transaction.objectStore(STORES.PIN);
     store.put({ id: 2, stayUnlocked: !!val });
@@ -195,7 +219,7 @@ async function setStayUnlocked(val) {
 }
 
 async function removePin() {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readwrite');
     const store = transaction.objectStore(STORES.PIN);
     store.delete(1);
@@ -226,7 +250,7 @@ function bindInactivityReset() {
 
 async function loadSettings() {
     stayUnlockedToggle.checked = await getStayUnlocked();
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
     const request = store.get(1);
@@ -252,7 +276,7 @@ async function hashPin(pin) {
 
 // Verify entered PIN against stored hash
 async function verifyPin(enteredPin) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
     const request = store.get(1);
@@ -273,7 +297,7 @@ async function verifyPin(enteredPin) {
 // Save PIN hash
 async function savePin(pin) {
     const pinHash = await hashPin(pin);
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readwrite');
     const store = transaction.objectStore(STORES.PIN);
     store.put({ id: 1, hash: pinHash });
@@ -377,7 +401,7 @@ async function handlePinSubmit(pin) {
     }
     
     // Check if we're in setup mode (no PIN yet)
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
     const request = store.get(1);
@@ -466,7 +490,7 @@ function renderDate() {
 
 // Load agents from database and render
 async function loadAgents() {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.AGENTS, 'readonly');
     const store = transaction.objectStore(STORES.AGENTS);
     const request = store.getAll();
@@ -528,7 +552,7 @@ function createAgentCard(agent) {
 
 // Add agent to database
 async function addAgentToDB(agentData) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.AGENTS, 'readwrite');
     const store = transaction.objectStore(STORES.AGENTS);
     store.add(agentData);
@@ -537,7 +561,7 @@ async function addAgentToDB(agentData) {
 
 // Update agent in database
 async function updateAgentInDB(id, updates) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.AGENTS, 'readwrite');
     const store = transaction.objectStore(STORES.AGENTS);
     const request = store.get(id);
@@ -559,7 +583,7 @@ async function updateAgentInDB(id, updates) {
 
 // Delete agent from database
 async function deleteAgentFromDB(id) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.AGENTS, 'readwrite');
     const store = transaction.objectStore(STORES.AGENTS);
     store.delete(id);
@@ -673,7 +697,7 @@ function showAgentForm(agentToEdit = null) {
 
 // Load notes from database and render
 async function loadNotes() {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.NOTES, 'readonly');
     const store = transaction.objectStore(STORES.NOTES);
     const index = store.index('timestamp');
@@ -742,7 +766,7 @@ function createNoteElement(note) {
 
 // Add note to database
 async function addNoteToDB(noteData) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.NOTES, 'readwrite');
     const store = transaction.objectStore(STORES.NOTES);
     store.add(noteData);
@@ -751,7 +775,7 @@ async function addNoteToDB(noteData) {
 
 // Delete note from database
 async function deleteNoteFromDB(id) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.NOTES, 'readwrite');
     const store = transaction.objectStore(STORES.NOTES);
     store.delete(id);
@@ -843,7 +867,7 @@ function showNoteForm(initialContent = '') {
 
 // Load briefing from database
 async function loadBriefing() {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.BRIEFING, 'readonly');
     const store = transaction.objectStore(STORES.BRIEFING);
     const request = store.get(1); // We'll use id=1 for the briefing
@@ -859,7 +883,7 @@ async function loadBriefing() {
 
 // Save briefing to database
 async function saveBriefing(content) {
-    const db = await indexedDB.open(DB_NAME, DB_VERSION);
+    const db = await openDB();
     const transaction = db.transaction(STORES.BRIEFING, 'readwrite');
     const store = transaction.objectStore(STORES.BRIEFING);
     store.put({ id: 1, content });
