@@ -121,24 +121,25 @@ main {
     min-height: 2.4rem; /* 3 lines */
 }
 
-/* Fab button */
+/* Fab button — raised above the bottom nav so it never hides behind it */
 .fab {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 56px;
-    height: 56px;
+    bottom: 6.5rem;
+    right: 1.5rem;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background-color: var(--primary-dark);
-    color: white;
-    border: none;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    background-color: var(--accent-lime);
+    color: var(--primary-deep);
+    border: 3px solid #ffffff;
+    font-size: 2rem;
+    font-weight: bold;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1500;
 }
 
 /* Voice controls */
@@ -401,10 +402,10 @@ main {
     }
     
     .fab {
-        bottom: 1rem;
+        bottom: 6rem;
         right: 1rem;
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
     }
     
     #bottom-nav {
@@ -448,3 +449,31 @@ main {
     border: 2px solid #757575;
     color: #555;
 }
+
+/* Weather banner */
+#weather-card {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.weather-row { display: flex; align-items: center; gap: 1rem; }
+.weather-icon { font-size: 2.2rem; }
+.weather-info { flex: 1; }
+.weather-temp { font-size: 2rem; font-weight: 700; line-height: 1; }
+.weather-loc { font-size: 0.9rem; opacity: 0.95; }
+.weather-cond { font-size: 0.85rem; opacity: 0.85; }
+.weather-edit {
+    background: rgba(255,255,255,0.25);
+    border: none; border-radius: 50%;
+    width: 42px; height: 42px;
+    color: white; font-size: 1.2rem; cursor: pointer;
+}
+.use-gps-btn {
+    width: 100%; padding: 0.75rem; border: none; border-radius: 6px;
+    background-color: var(--primary-dark); color: white; cursor: pointer; font-size: 1rem; margin-bottom: 0.5rem;
+}
+.weather-or { text-align: center; color: #777; margin: 0.75rem 0; }
+#weather-city { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-bottom: 1rem; }

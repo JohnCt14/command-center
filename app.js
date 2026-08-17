@@ -2,12 +2,13 @@
 
 // Database constants
 const DB_NAME = 'NewEraCommandCenterDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORES = {
     PIN: 'pin',
     AGENTS: 'agents',
     NOTES: 'notes',
-    BRIEFING: 'briefing'
+    BRIEFING: 'briefing',
+    WEATHER: 'weather'
 };
 
 // UI elements
@@ -19,6 +20,8 @@ let addAgentBtn, addNoteBtn, changePinBtn, aboutBtn;
 let skipPinBtn, removePinBtn, stayUnlockedToggle;
 let bottomNavButtons;
 let toastContainer;
+let weatherIcon, weatherTemp, weatherLoc, weatherCond, weatherEdit;
+let weatherModal, useGpsBtn, weatherCity, weatherCancel, weatherSave;
 
 // State
 let isUnlocked = false;
@@ -70,6 +73,17 @@ function cacheElements() {
     removePinBtn = document.getElementById('remove-pin-btn');
     stayUnlockedToggle = document.getElementById('stay-unlocked-toggle');
     
+    weatherIcon = document.getElementById('weather-icon');
+    weatherTemp = document.getElementById('weather-temp');
+    weatherLoc = document.getElementById('weather-loc');
+    weatherCond = document.getElementById('weather-cond');
+    weatherEdit = document.getElementById('weather-edit');
+    weatherModal = document.getElementById('weather-modal');
+    useGpsBtn = document.getElementById('use-gps-btn');
+    weatherCity = document.getElementById('weather-city');
+    weatherCancel = document.getElementById('weather-cancel');
+    weatherSave = document.getElementById('weather-save');
+    
     bottomNavButtons = document.querySelectorAll('.nav-btn');
     toastContainer = document.getElementById('toast-container');
     
@@ -101,6 +115,9 @@ function initDatabase() {
             if (!db.objectStoreNames.contains(STORES.BRIEFING)) {
                 db.createObjectStore(STORES.BRIEFING, { keyPath: 'id' });
             }
+            if (!db.objectStoreNames.contains(STORES.WEATHER)) {
+                db.createObjectStore(STORES.WEATHER, { keyPath: 'id' });
+            }
         };
         
         request.onsuccess = (event) => {
@@ -131,6 +148,7 @@ function openDB() {
                 s.createIndex('timestamp', 'timestamp', { unique: false });
             }
             if (!db.objectStoreNames.contains(STORES.BRIEFING)) db.createObjectStore(STORES.BRIEFING, { keyPath: 'id' });
+            if (!db.objectStoreNames.contains(STORES.WEATHER)) db.createObjectStore(STORES.WEATHER, { keyPath: 'id' });
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -198,6 +216,7 @@ function hideLockScreen() {
     loadAgents();
     loadNotes();
     loadBriefing();
+    loadWeather();
     resetInactivityTimer();
 }
 
@@ -418,6 +437,12 @@ function setupEventListeners() {
     readBriefingBtn.addEventListener('click', () => {
         readBriefingAloud();
     });
+
+    // Weather
+    weatherEdit.addEventListener('click', openWeatherModal);
+    weatherCancel.addEventListener('click', closeWeatherModal);
+    weatherSave.addEventListener('click', saveTypedCity);
+    useGpsBtn.addEventListener('click', useGPS);
 }
 
 // Handle PIN submission (for unlock or setup)
@@ -498,6 +523,7 @@ function switchTab(tabId) {
     // Refresh data if needed
     if (tabId === 'home') {
         loadAgents();
+        loadWeather();
     } else if (tabId === 'notes') {
         loadNotes();
     } else if (tabId === 'today') {
@@ -1022,6 +1048,104 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
         // Voices loaded
     };
+}
+
+// ========== WEATHER (free, no key — Open-Meteo) ==========
+
+const WEATHER_CODE = {
+    0: '☀️ Clear', 1: '🌤️ Mainly clear', 2: '⛅ Partly cloudy', 3: '☁️ Overcast',
+    45: '🌫️ Fog', 48: '🌫️ Fog',
+    51: '🌦️ Drizzle', 53: '🌦️ Drizzle', 55: '🌦️ Drizzle', 56: '🌧️ Freezing drizzle', 57: '🌧️ Freezing drizzle',
+    61: '🌧️ Light rain', 63: '🌧️ Rain', 65: '🌧️ Heavy rain', 66: '🌧️ Freezing rain', 67: '🌧️ Freezing rain',
+    71: '🌨️ Light snow', 73: '🌨️ Snow', 75: '❄️ Heavy snow', 77: '❄️ Snow grains',
+    80: '🌦️ Showers', 81: '🌦️ Showers', 82: '⛈️ Heavy showers',
+    85: '🌨️ Snow showers', 86: '🌨️ Heavy snow showers',
+    95: '⛈️ Thunderstorm', 96: '⛈️ Thunderstorm', 99: '⛈️ Severe thunderstorm'
+};
+
+async function getWeatherLoc() {
+    const db = await openDB();
+    const tx = db.transaction(STORES.WEATHER, 'readonly');
+    const store = tx.objectStore(STORES.WEATHER);
+    const req = store.get(1);
+    return new Promise(res => { req.onsuccess = () => res(req.result || null); });
+}
+
+async function setWeatherLoc(loc) {
+    const db = await openDB();
+    const tx = db.transaction(STORES.WEATHER, 'readwrite');
+    const store = tx.objectStore(STORES.WEATHER);
+    store.put({ id: 1, lat: loc.lat, lon: loc.lon, name: loc.name || '' });
+    return tx.complete;
+}
+
+async function loadWeather() {
+    const loc = await getWeatherLoc();
+    if (!loc) { showWeatherPlaceholder(); return; }
+    weatherLoc.textContent = loc.name || 'My location';
+    await fetchWeather(loc.lat, loc.lon);
+}
+
+function showWeatherPlaceholder() {
+    weatherIcon.textContent = '🌤️';
+    weatherTemp.textContent = '--°';
+    weatherLoc.textContent = 'Tap ⚙️ to set location';
+    weatherCond.textContent = '--';
+}
+
+async function fetchWeather(lat, lon) {
+    try {
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
+            '&longitude=' + lon +
+            '&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1';
+        const r = await fetch(url);
+        const d = await r.json();
+        const cur = d.current;
+        const entry = WEATHER_CODE[cur.weather_code] || '☁️ Weather';
+        const sp = entry.indexOf(' ');
+        const emoji = entry.slice(0, sp);
+        const cond = entry.slice(sp + 1);
+        const hi = d.daily.temperature_2m_max[0];
+        const lo = d.daily.temperature_2m_min[0];
+        weatherIcon.textContent = emoji;
+        weatherTemp.textContent = Math.round(cur.temperature_2m) + '°';
+        weatherCond.textContent = cond + ' · H:' + Math.round(hi) + '° L:' + Math.round(lo) + '° · 💨 ' + Math.round(cur.wind_speed_10m) + ' mph';
+    } catch (e) {
+        weatherCond.textContent = 'Weather unavailable offline';
+    }
+}
+
+function openWeatherModal() { weatherModal.style.display = 'flex'; weatherCity.value = ''; weatherCity.focus(); }
+function closeWeatherModal() { weatherModal.style.display = 'none'; }
+
+function useGPS() {
+    if (!navigator.geolocation) { showToast('GPS not supported on this device'); return; }
+    showToast('Getting your location...');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        await setWeatherLoc({ lat, lon, name: 'My location' });
+        closeWeatherModal();
+        weatherLoc.textContent = 'My location';
+        await fetchWeather(lat, lon);
+        showToast('Weather set to your location');
+    }, () => { showToast('Could not get GPS location'); }, { enableHighAccuracy: false, timeout: 10000 });
+}
+
+async function saveTypedCity() {
+    const q = weatherCity.value.trim();
+    if (!q) { showToast('Enter a city'); return; }
+    try {
+        const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=1&language=en&format=json');
+        const d = await r.json();
+        if (!d.results || d.results.length === 0) { showToast('City not found'); return; }
+        const res = d.results[0];
+        const name = [res.name, res.admin1, res.country_code].filter(Boolean).join(', ');
+        await setWeatherLoc({ lat: res.latitude, lon: res.longitude, name });
+        closeWeatherModal();
+        weatherLoc.textContent = name;
+        await fetchWeather(res.latitude, res.longitude);
+        showToast('Weather updated');
+    } catch (e) { showToast('Could not find that city'); }
 }
 
 // ========== UTILITIES ==========

@@ -16,11 +16,36 @@
     <main>
         <!-- Agent Status Board (Home) -->
         <section id="home" class="tab active">
+            <div id="weather-card">
+                <div class="weather-row">
+                    <span class="weather-icon" id="weather-icon">🌤️</span>
+                    <div class="weather-info">
+                        <div class="weather-temp" id="weather-temp">--°</div>
+                        <div class="weather-loc" id="weather-loc">Set location</div>
+                        <div class="weather-cond" id="weather-cond">--</div>
+                    </div>
+                    <button class="weather-edit" id="weather-edit" aria-label="Change weather location">⚙️</button>
+                </div>
+            </div>
             <div id="agent-board">
                 <!-- Agent cards will be injected here by app.js -->
             </div>
             <button id="add-agent-btn" class="fab">+ Agent</button>
         </section>
+
+        <!-- Weather Location Modal -->
+        <div id="weather-modal" class="overlay" style="display:none;">
+            <div class="lock-content">
+                <h2>Weather Location</h2>
+                <button id="use-gps-btn" class="use-gps-btn">📍 Use My Location (GPS)</button>
+                <div class="weather-or">— or type a city —</div>
+                <input type="text" id="weather-city" placeholder="e.g. Hartford, CT">
+                <div class="form-actions">
+                    <button id="weather-cancel">Cancel</button>
+                    <button id="weather-save">Save</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Command Pad (Notes) -->
         <section id="notes" class="tab">
