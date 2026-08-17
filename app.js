@@ -140,6 +140,7 @@ function openDB() {
 // Check if it's first launch (no PIN set)
 async function checkFirstLaunch() {
     const stay = await getStayUnlocked();
+    const skipped = await getPinSkipped();
     const db = await openDB();
     const transaction = db.transaction(STORES.PIN, 'readonly');
     const store = transaction.objectStore(STORES.PIN);
@@ -154,8 +155,11 @@ async function checkFirstLaunch() {
                 } else {
                     showLockScreen();
                 }
+            } else if (skipped) {
+                // User chose "Skip for now" earlier — never nag again.
+                hideLockScreen();
             } else {
-                // No PIN, prompt to set one (optional — user can skip)
+                // Never set up and never skipped — offer the optional setup once.
                 showPinSetup();
             }
             resolve();
@@ -223,6 +227,27 @@ async function removePin() {
     const transaction = db.transaction(STORES.PIN, 'readwrite');
     const store = transaction.objectStore(STORES.PIN);
     store.delete(1);
+    return transaction.complete;
+}
+
+// Remember whether the user chose "Skip for now" on the optional PIN setup, so
+// we never re-prompt them on every open (glove-friendly). Stored under id=3.
+async function getPinSkipped() {
+    const db = await openDB();
+    const transaction = db.transaction(STORES.PIN, 'readonly');
+    const store = transaction.objectStore(STORES.PIN);
+    const request = store.get(3);
+    return new Promise((resolve) => {
+        request.onsuccess = () => resolve(!!(request.result && request.result.pinSkipped));
+    });
+}
+
+async function setPinSkipped(val) {
+    const db = await openDB();
+    const transaction = db.transaction(STORES.PIN, 'readwrite');
+    const store = transaction.objectStore(STORES.PIN);
+    if (val) store.put({ id: 3, pinSkipped: true });
+    else store.delete(3);
     return transaction.complete;
 }
 
@@ -356,7 +381,8 @@ function setupEventListeners() {
     });
 
     // Skip setting a PIN (first-run)
-    skipPinBtn.addEventListener('click', () => {
+    skipPinBtn.addEventListener('click', async () => {
+        await setPinSkipped(true);
         hideLockScreen();
         showToast('No passcode set — add one anytime in Settings');
     });
@@ -365,6 +391,7 @@ function setupEventListeners() {
     removePinBtn.addEventListener('click', async () => {
         if (confirm('Remove the passcode? The app will stop asking for one.')) {
             await removePin();
+            await setPinSkipped(true);
             stayUnlockedToggle.checked = false;
             await setStayUnlocked(false);
             removePinBtn.style.display = 'none';
@@ -413,6 +440,7 @@ async function handlePinSubmit(pin) {
     if (!result) {
         // Setting up PIN for the first time
         await savePin(pin);
+        await setPinSkipped(false);
         showToast('PIN set successfully');
         hideLockScreen();
         // Reset placeholder
