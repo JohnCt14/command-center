@@ -1073,6 +1073,81 @@ const WEATHER_CODE = {
     95: '⛈️ Thunderstorm', 96: '⛈️ Thunderstorm', 99: '⛈️ Severe thunderstorm'
 };
 
+// Radar state (Leaflet + RainViewer)
+let radarMap = null, radarLayer = null, radarLoc = null;
+
+function renderHourly(hourly) {
+    const list = document.getElementById('hourly-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!hourly || !hourly.time) return;
+    for (let i = 0; i < Math.min(24, hourly.time.length); i++) {
+        const t = new Date(hourly.time[i]);
+        const timeStr = t.toLocaleTimeString([], { hour: 'numeric' });
+        const entry = WEATHER_CODE[hourly.weather_code[i]] || '☁️';
+        const sp = entry.indexOf(' ');
+        const emoji = sp > 0 ? entry.slice(0, sp) : entry;
+        const pp = hourly.precipitation_probability[i] || 0;
+        const temp = Math.round(hourly.temperature_2m[i]);
+        const item = document.createElement('div');
+        item.className = 'hourly-item';
+        item.innerHTML = '<div class="h-time">' + timeStr + '</div><div class="h-emoji">' + emoji + '</div><div class="h-precip">' + (pp > 0 ? pp + '%' : '') + '</div><div class="h-temp">' + temp + '°</div>';
+        list.appendChild(item);
+    }
+}
+
+function renderMinutely(minutely) {
+    const bar = document.getElementById('minutely-bar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    if (!minutely || !minutely.time) return;
+    for (let i = 0; i < minutely.time.length; i++) {
+        const p = minutely.precipitation[i] || 0;
+        const cell = document.createElement('div');
+        cell.className = 'minutely-cell';
+        let bg;
+        if (p <= 0.02) bg = 'rgba(255,255,255,0.08)';
+        else if (p < 0.5) bg = '#9ccc65';
+        else if (p < 2.5) bg = '#43a047';
+        else if (p < 7.5) bg = '#ffca28';
+        else bg = '#ef5350';
+        cell.style.background = bg;
+        if (i % 3 === 0) {
+            const t = new Date(minutely.time[i]);
+            cell.innerHTML = '<span class="m-time">' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span>';
+        }
+        bar.appendChild(cell);
+    }
+}
+
+function initRadar(lat, lon) {
+    const el = document.getElementById('weather-radar');
+    if (!el) return;
+    if (!window.L || !window.L.map) return; // Leaflet/radar needs internet
+    if (!radarMap) {
+        radarMap = L.map('weather-radar').setView([lat, lon], 8);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap', maxZoom: 15
+        }).addTo(radarMap);
+    } else {
+        radarMap.setView([lat, lon], 8);
+        setTimeout(() => radarMap.invalidateSize(), 60);
+    }
+    if (radarLoc && radarLoc[0] === lat && radarLoc[1] === lon) return;
+    radarLoc = [lat, lon];
+    if (radarLayer) { radarMap.removeLayer(radarLayer); radarLayer = null; }
+    fetch('https://api.rainviewer.com/public/weather-maps.json')
+        .then(r => r.json())
+        .then(data => {
+            const frames = (data.radar.past || []).concat(data.radar.nowcast || []);
+            if (!frames.length) return;
+            const latest = frames[frames.length - 1];
+            const url = data.host + latest.path + '/256/{z}/{x}/{y}/2/1_1.png';
+            radarLayer = L.tileLayer(url, { opacity: 0.55, zIndex: 500 }).addTo(radarMap);
+        })
+        .catch(() => {});
+}
+
 async function getWeatherLoc() {
     const db = await openDB();
     const tx = db.transaction(STORES.WEATHER, 'readonly');
@@ -1116,6 +1191,8 @@ async function fetchWeather(lat, lon) {
     try {
         const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
             '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,visibility,surface_pressure,dew_point_2m' +
+            '&hourly=temperature_2m,precipitation_probability,weather_code' +
+            '&minutely_15=precipitation&forecast_minutely_15=120' +
             '&daily=temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset,precipitation_probability_max' +
             '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=1';
         const r = await fetch(url);
@@ -1140,6 +1217,9 @@ async function fetchWeather(lat, lon) {
             extra += ' · 🌧️ ' + Math.round(day.precipitation_probability_max[0]) + '%';
         }
         weatherExtra.textContent = extra;
+        renderHourly(d.hourly);
+        renderMinutely(d.minutely_15);
+        initRadar(lat, lon);
     } catch (e) {
         weatherCond.textContent = 'Weather unavailable offline';
     }

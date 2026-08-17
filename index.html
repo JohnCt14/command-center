@@ -6,6 +6,8 @@
     <title>New Era Command Center</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <header>
@@ -36,6 +38,31 @@
                     <div class="wg"><span>🌡️</span><div><b id="wg-dew">--</b><small>Dew Point</small></div></div>
                 </div>
                 <div class="weather-extra" id="weather-extra"></div>
+            </div>
+
+            <!-- Hourly forecast -->
+            <div class="weather-sub" id="hourly-card">
+                <div class="sub-head">Hourly forecast</div>
+                <div id="hourly-list" class="hourly-list"></div>
+            </div>
+
+            <!-- Minute precipitation -->
+            <div class="weather-sub" id="minutely-card">
+                <div class="sub-head">Precipitation — next 2 hours</div>
+                <div id="minutely-bar" class="minutely-bar"></div>
+                <div class="minutely-legend">
+                    <span class="ml"><i style="background:#9ccc65"></i>Light</span>
+                    <span class="ml"><i style="background:#43a047"></i>Moderate</span>
+                    <span class="ml"><i style="background:#ffca28"></i>Heavy</span>
+                    <span class="ml"><i style="background:#ef5350"></i>Very heavy</span>
+                </div>
+            </div>
+
+            <!-- Radar -->
+            <div class="weather-sub" id="radar-card">
+                <div class="sub-head">Radar</div>
+                <div id="weather-radar"></div>
+                <div class="radar-attrib">Radar by RainViewer · Map © OpenStreetMap</div>
             </div>
             <div id="agent-board">
                 <!-- Agent cards will be injected here by app.js -->
