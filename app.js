@@ -1097,7 +1097,7 @@ async function fetchWeather(lat, lon) {
     try {
         const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
             '&longitude=' + lon +
-            '&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1';
+            '&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=1';
         const r = await fetch(url);
         const d = await r.json();
         const cur = d.current;
