@@ -1101,7 +1101,8 @@ function renderMinutely(minutely) {
     if (!bar) return;
     bar.innerHTML = '';
     if (!minutely || !minutely.time) return;
-    for (let i = 0; i < minutely.time.length; i++) {
+    const n = Math.min(8, minutely.time.length); // next 2 hours at 15-min steps
+    for (let i = 0; i < n; i++) {
         const p = minutely.precipitation[i] || 0;
         const cell = document.createElement('div');
         cell.className = 'minutely-cell';

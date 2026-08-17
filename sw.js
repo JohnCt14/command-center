@@ -1,6 +1,6 @@
 // New Era Command Center - Service Worker
 
-const CACHE_NAME = 'new-era-command-center-v7';
+const CACHE_NAME = 'new-era-command-center-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
