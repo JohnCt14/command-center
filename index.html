@@ -21,11 +21,21 @@
                     <span class="weather-icon" id="weather-icon">🌤️</span>
                     <div class="weather-info">
                         <div class="weather-temp" id="weather-temp">--°</div>
-                        <div class="weather-loc" id="weather-loc">Set location</div>
                         <div class="weather-cond" id="weather-cond">--</div>
+                        <div class="weather-feels" id="weather-feels">Feels like --°</div>
                     </div>
                     <button class="weather-edit" id="weather-edit" aria-label="Change weather location">⚙️</button>
                 </div>
+                <div class="weather-loc" id="weather-loc">Set location</div>
+                <div class="weather-grid" id="weather-grid">
+                    <div class="wg"><span>💨</span><div><b id="wg-wind">--</b><small>Wind</small></div></div>
+                    <div class="wg"><span>💧</span><div><b id="wg-hum">--</b><small>Humidity</small></div></div>
+                    <div class="wg"><span>👁️</span><div><b id="wg-vis">--</b><small>Visibility</small></div></div>
+                    <div class="wg"><span>🔽</span><div><b id="wg-pres">--</b><small>Pressure</small></div></div>
+                    <div class="wg"><span>☀️</span><div><b id="wg-uv">--</b><small>UV Index</small></div></div>
+                    <div class="wg"><span>🌡️</span><div><b id="wg-dew">--</b><small>Dew Point</small></div></div>
+                </div>
+                <div class="weather-extra" id="weather-extra"></div>
             </div>
             <div id="agent-board">
                 <!-- Agent cards will be injected here by app.js -->

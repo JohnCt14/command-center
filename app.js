@@ -22,6 +22,8 @@ let bottomNavButtons;
 let toastContainer;
 let weatherIcon, weatherTemp, weatherLoc, weatherCond, weatherEdit;
 let weatherModal, useGpsBtn, weatherCity, weatherCancel, weatherSave;
+let weatherFeels, weatherExtra;
+let wgWind, wgHum, wgVis, wgPres, wgUv, wgDew;
 
 // State
 let isUnlocked = false;
@@ -83,6 +85,14 @@ function cacheElements() {
     weatherCity = document.getElementById('weather-city');
     weatherCancel = document.getElementById('weather-cancel');
     weatherSave = document.getElementById('weather-save');
+    weatherFeels = document.getElementById('weather-feels');
+    weatherExtra = document.getElementById('weather-extra');
+    wgWind = document.getElementById('wg-wind');
+    wgHum = document.getElementById('wg-hum');
+    wgVis = document.getElementById('wg-vis');
+    wgPres = document.getElementById('wg-pres');
+    wgUv = document.getElementById('wg-uv');
+    wgDew = document.getElementById('wg-dew');
     
     bottomNavButtons = document.querySelectorAll('.nav-btn');
     toastContainer = document.getElementById('toast-container');
@@ -1091,25 +1101,45 @@ function showWeatherPlaceholder() {
     weatherTemp.textContent = '--°';
     weatherLoc.textContent = 'Tap ⚙️ to set location';
     weatherCond.textContent = '--';
+    weatherFeels.textContent = 'Feels like --°';
+    wgWind.textContent = '--'; wgHum.textContent = '--'; wgVis.textContent = '--';
+    wgPres.textContent = '--'; wgUv.textContent = '--'; wgDew.textContent = '--';
+    weatherExtra.textContent = '';
+}
+
+function windDir(deg) {
+    const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    return dirs[Math.round(deg / 22.5) % 16];
 }
 
 async function fetchWeather(lat, lon) {
     try {
-        const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
-            '&longitude=' + lon +
-            '&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=1';
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+            '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,visibility,surface_pressure,dew_point_2m' +
+            '&daily=temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset,precipitation_probability_max' +
+            '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=1';
         const r = await fetch(url);
         const d = await r.json();
-        const cur = d.current;
+        const cur = d.current, day = d.daily;
         const entry = WEATHER_CODE[cur.weather_code] || '☁️ Weather';
         const sp = entry.indexOf(' ');
-        const emoji = entry.slice(0, sp);
-        const cond = entry.slice(sp + 1);
-        const hi = d.daily.temperature_2m_max[0];
-        const lo = d.daily.temperature_2m_min[0];
-        weatherIcon.textContent = emoji;
+        weatherIcon.textContent = entry.slice(0, sp);
+        weatherCond.textContent = entry.slice(sp + 1);
         weatherTemp.textContent = Math.round(cur.temperature_2m) + '°';
-        weatherCond.textContent = cond + ' · H:' + Math.round(hi) + '° L:' + Math.round(lo) + '° · 💨 ' + Math.round(cur.wind_speed_10m) + ' mph';
+        weatherFeels.textContent = 'Feels like ' + Math.round(cur.apparent_temperature) + '°';
+        wgWind.textContent = Math.round(cur.wind_speed_10m) + ' mph ' + windDir(cur.wind_direction_10m);
+        wgHum.textContent = Math.round(cur.relative_humidity_2m) + '%';
+        const visMi = cur.visibility / 1609.34;
+        wgVis.textContent = visMi >= 10 ? '10+ mi' : visMi.toFixed(1) + ' mi';
+        wgPres.textContent = (cur.surface_pressure / 33.8639).toFixed(2) + ' inHg';
+        wgUv.textContent = Math.round(day.uv_index_max[0]) + ' UV';
+        wgDew.textContent = Math.round(cur.dew_point_2m) + '°';
+        const fmt = (iso) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        let extra = '🌅 ' + fmt(day.sunrise[0]) + ' · 🌇 ' + fmt(day.sunset[0]);
+        if (day.precipitation_probability_max && day.precipitation_probability_max[0] != null) {
+            extra += ' · 🌧️ ' + Math.round(day.precipitation_probability_max[0]) + '%';
+        }
+        weatherExtra.textContent = extra;
     } catch (e) {
         weatherCond.textContent = 'Weather unavailable offline';
     }

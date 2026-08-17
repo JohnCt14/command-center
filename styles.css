@@ -121,24 +121,25 @@ main {
     min-height: 2.4rem; /* 3 lines */
 }
 
-/* Fab button — raised above the bottom nav so it never hides behind it */
+/* Fab button — pill, raised above the bottom nav so it never hides behind it */
 .fab {
     position: fixed;
     bottom: 6.5rem;
     right: 1.5rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    padding: 0.9rem 1.4rem;
+    border-radius: 40px;
     background-color: var(--accent-lime);
     color: var(--primary-deep);
     border: 3px solid #ffffff;
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 1.1rem;
+    font-weight: 700;
     box-shadow: 0 6px 16px rgba(0,0,0,0.35);
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
     z-index: 1500;
 }
 
@@ -404,8 +405,8 @@ main {
     .fab {
         bottom: 6rem;
         right: 1rem;
-        width: 56px;
-        height: 56px;
+        padding: 0.8rem 1.1rem;
+        font-size: 1rem;
     }
     
     #bottom-nav {
@@ -477,3 +478,23 @@ main {
 }
 .weather-or { text-align: center; color: #777; margin: 0.75rem 0; }
 #weather-city { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-bottom: 1rem; }
+
+.weather-feels { font-size: 0.85rem; opacity: 0.9; }
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+.wg {
+    background: rgba(255,255,255,0.14);
+    border-radius: 8px;
+    padding: 0.4rem 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.wg > span { font-size: 1rem; }
+.wg b { display: block; font-size: 0.9rem; line-height: 1.15; white-space: nowrap; }
+.wg small { font-size: 0.62rem; opacity: 0.85; }
+.weather-extra { margin-top: 0.6rem; font-size: 0.8rem; opacity: 0.92; }
