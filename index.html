@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Era Command Center</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="assets/logo.jpg" alt="New Era Services Logo" id="logo">
+        <h1>New Era Command Center</h1>
+    </header>
+
+    <main>
+        <!-- Agent Status Board (Home) -->
+        <section id="home" class="tab active">
+            <div id="agent-board">
+                <!-- Agent cards will be injected here by app.js -->
+            </div>
+            <button id="add-agent-btn" class="fab">+ Agent</button>
+        </section>
+
+        <!-- Command Pad (Notes) -->
+        <section id="notes" class="tab">
+            <div id="voice-controls">
+                <button id="voice-btn" class="voice-btn">🎙️</button>
+                <button id="voice-briefing-btn" class="voice-briefing-btn">Voice Briefing</button>
+            </div>
+            <div id="notes-list">
+                <!-- Notes will be injected here by app.js -->
+            </div>
+            <button id="add-note-btn" class="fab">+ Note</button>
+        </section>
+
+        <!-- Today / Briefing -->
+        <section id="today" class="tab">
+            <div id="today-card">
+                <h2>Today</h2>
+                <div id="date-display"></div>
+                <textarea id="briefing-text" placeholder="Edit your briefing/schedule here..."></textarea>
+                <button id="read-briefing-btn">Read Briefing</button>
+            </div>
+        </section>
+
+        <!-- Settings -->
+        <section id="settings" class="tab">
+            <div id="settings-content">
+                <h2>Settings</h2>
+                <div class="setting-row">
+                    <label for="stay-unlocked-toggle">Stay unlocked on this phone</label>
+                    <input type="checkbox" id="stay-unlocked-toggle">
+                </div>
+                <button id="change-pin-btn">Change PIN</button>
+                <button id="remove-pin-btn" class="danger-btn">Remove Passcode</button>
+                <button id="about-btn">About</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav">
+        <button class="nav-btn active" data-tab="home">Home</button>
+        <button class="nav-btn" data-tab="notes">Notes</button>
+        <button class="nav-btn" data-tab="today">Today</button>
+        <button class="nav-btn" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Passcode Lock Screen (overlay) -->
+    <div id="lock-screen" class="overlay">
+        <div class="lock-content">
+            <h2>Enter PIN</h2>
+            <div class="keypad">
+                <button class="keypad-btn">1</button>
+                <button class="keypad-btn">2</button>
+                <button class="keypad-btn">3</button>
+                <button class="keypad-btn">4</button>
+                <button class="keypad-btn">5</button>
+                <button class="keypad-btn">6</button>
+                <button class="keypad-btn">7</button>
+                <button class="keypad-btn">8</button>
+                <button class="keypad-btn">9</button>
+                <button class="keypad-btn">*</button>
+                <button class="keypad-btn">0</button>
+                <button class="keypad-btn" id="backspace-btn">←</button>
+            </div>
+            <div id="pin-error" class="error"></div>
+            <button id="skip-pin-btn" style="display:none;">Skip for now</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

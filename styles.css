@@ -1,0 +1,450 @@
+/* Base styles */
+:root {
+    --primary-dark: #2E7D32;
+    --primary-deep: #1B5E20;
+    --accent-lime: #8BC34A;
+    --accent-gold: #B8860B;
+    --background-white: #ffffff;
+    --background-light: #f8f9fa;
+    --text-dark: #212121;
+    --text-light: #757575;
+    --success: #4CAF50;
+    --error: #f44336;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--background-white);
+}
+
+header {
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+}
+
+header img#logo {
+    max-height: 40px;
+    margin-bottom: 0.5rem;
+}
+
+header h1 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+main {
+    padding: 1rem;
+}
+
+.tab {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.tab.active {
+    display: block;
+}
+
+/* Agent Status Board */
+#agent-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.agent-card {
+    background-color: var(--background-light);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.agent-card:hover {
+    transform: translateY(-2px);
+}
+
+.agent-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    color: var(--primary-dark);
+}
+
+.agent-card .role {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.agent-card .status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.agent-card .status-online {
+    background-color: var(--success);
+    color: white;
+}
+
+.agent-card .status-idle {
+    background-color: var(--accent-lime);
+    color: white;
+}
+
+.agent-card .status-offline {
+    background-color: var(--error);
+    color: white;
+}
+
+.agent-card .note {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+    min-height: 2.4rem; /* 3 lines */
+}
+
+/* Fab button */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Voice controls */
+#voice-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.voice-btn {
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.voice-briefing-btn {
+    background-color: var(--accent-lime);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Notes list */
+#notes-list {
+    margin-bottom: 1rem;
+}
+
+.note-item {
+    background-color: var(--background-light);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.note-item .timestamp {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.note-item .content {
+    margin-bottom: 0.5rem;
+    min-height: 2.4rem; /* 3 lines */
+}
+
+.note-item .actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.note-item .actions button {
+    flex: 1;
+    padding: 0.25rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.note-item .read-btn {
+    background-color: var(--primary-dark);
+    color: white;
+}
+
+.note-item .delete-btn {
+    background-color: var(--error);
+    color: white;
+}
+
+/* Today card */
+#today-card {
+    background-color: var(--background-light);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#date-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--primary-dark);
+}
+
+#briefing-text {
+    width: 100%;
+    height: 100px;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+#read-briefing-btn {
+    background-color: var(--accent-lime);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Settings */
+#settings-content {
+    background-color: var(--background-light);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#settings-content h2 {
+    margin-top: 0;
+}
+
+#settings-content button {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--primary-dark);
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+#settings-content button:hover {
+    background-color: var(--primary-deep);
+}
+
+/* Bottom Navigation */
+#bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 0.5rem 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+#bottom-nav .nav-btn {
+    background: none;
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+#bottom-nav .nav-btn.active {
+    border-bottom: 2px solid var(--accent-lime);
+}
+
+/* Passcode Lock Screen */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.lock-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.lock-content h2 {
+    margin-top: 0;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.keypad-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    font-size: 1.2rem;
+    border: none;
+    background-color: var(--background-light);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.keypad-btn:active {
+    background-color: #ddd;
+}
+
+#pin-error {
+    color: var(--error);
+    margin-top: 1rem;
+    min-height: 1.2rem;
+}
+
+/* Toast */
+#toast-container {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 0.9rem;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1rem;
+    }
+    
+    .agent-card {
+        padding: 0.75rem;
+    }
+    
+    .fab {
+        bottom: 1rem;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
+    }
+    
+    #bottom-nav {
+        padding: 0.25rem 0;
+    }
+    
+    #bottom-nav .nav-btn {
+        padding: 0.25rem;
+        font-size: 0.8rem;
+    }
+}
+/* Glove-friendly settings rows */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: #f4f9f4;
+    border-radius: 8px;
+}
+.setting-row label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+.setting-row input[type="checkbox"] {
+    width: 44px;
+    height: 44px;
+    transform: scale(1.6);
+    cursor: pointer;
+}
+.danger-btn {
+    background-color: #c62828 !important;
+    color: white;
+}
+#skip-pin-btn {
+    margin-top: 1rem;
+    width: 100%;
+    background: transparent;
+    border: 2px solid #757575;
+    color: #555;
+}
